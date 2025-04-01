@@ -1,33 +1,28 @@
 from collections import defaultdict
-
-
-class Polynome(defaultdict):
-    def __init__(self, **kwargs):
-        super().__init__(float, **kwargs)
-        self._update_degrees()
+class PolynomIterator:
+    def __init__(self, collection: dict):
         self._index = 0
+        self.collection = {}
+        for power, coef in collection.items():
+            if coef != 0:
+                self.collection[power] = coef
 
-    def _update_degrees(self):
-        self._degrees = sorted(self.keys())
-
-    def __setitem__(self, key, value):
-        super().__setitem__(key, value)
-        if value == 0:
-            del self[key]
-        self._update_degrees()
-
-    def __iter__(self):
-        self._index = 0
-        return self
+        self._degrees = sorted(self.collection.keys())[::-1]
 
     def __next__(self):
         if self._index >= len(self._degrees):
             raise StopIteration
         deg = self._degrees[self._index]
-        coeff = self[deg]
+        coeff = self.collection[deg]
         self._index += 1
         return deg, coeff
 
+
+class Polynome(defaultdict):
+    def __iter__(self):
+        return PolynomIterator(self)
+
+    @staticmethod
     def fromstring(s):
         p = Polynome()
         s = s.replace('+',' ')
@@ -39,7 +34,7 @@ class Polynome(defaultdict):
             p[k] = v
         return p
 
-    fromstring = staticmethod(fromstring)
+    # fromstring = staticmethod(fromstring)
 
     def add_monom(self, deg, coeff):
         if coeff != 0:
@@ -133,3 +128,6 @@ if __name__ == '__main__':
 
     for deg, coeff in p1:
         print(f"Степінь: {deg}, Коефіцієнт: {coeff}")
+
+    for deg, coeff in p1:
+        print(f"степінь: {deg}, коефіцієнт: {coeff}")

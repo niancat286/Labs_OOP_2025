@@ -1,19 +1,25 @@
-class ProtectedDictInt:
-    def __init__(self):
-        self.__dict = {}
-        self._index = 0
-        self._keys = list(sorted(self.__dict.keys()))
+class ProtectedDictIntIterator:
+    def __init__(self, collection):
+        self.collection = collection
 
-    def __iter__(self):
-        return self
+        self._index = 0
+        self._keys = list(sorted(self.collection.keys()))
 
     def __next__(self):
         try:
-            current = self.__dict[self._index]
+            current = self.collection[self._index]
             self._index += 1
             return current
         except KeyError:
             raise StopIteration
+
+
+class ProtectedDictInt:
+    def __init__(self):
+        self.__dict = {}
+
+    def __iter__(self):
+        return ProtectedDictIntIterator(self.__dict)
 
     def __setitem__(self, key, value):
         if not isinstance(key, int):
@@ -80,3 +86,8 @@ if __name__ == '__main__':
     d[2] = 11
     for i in d:
         print(i)
+
+        print("=====================")
+        for i in d:
+            print(i)
+        print("=====================")
