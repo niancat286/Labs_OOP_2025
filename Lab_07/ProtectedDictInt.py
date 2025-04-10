@@ -1,0 +1,108 @@
+class ProtectedDictIntError(KeyError):
+    NOT_INTEGER_KEY = 0
+    MISSED_KEY = 1
+    CHANGE_VALUE = 2
+    def __init__(self, err_code, message):
+        super().__init__()
+        self.err_code = err_code
+        self.message = message
+
+    def __str__(self):
+        return 'code error ' + str(self.err_code) + ' ProtectedDictIntError ' + str(self.message)
+
+
+class ProtectedDictIntIterator:
+    def __init__(self, collection):
+        self.collection = collection
+
+        self._index = 0
+        self._keys = list(sorted(self.collection.keys()))
+
+    def __next__(self):
+        try:
+            current = self.collection[self._index]
+            self._index += 1
+            return current
+        except KeyError:
+            raise StopIteration
+
+
+class ProtectedDictInt:
+    def __init__(self):
+        self.__dict = {}
+
+    def __iter__(self):
+        return ProtectedDictIntIterator(self.__dict)
+
+    def __setitem__(self, key, value):
+        if not isinstance(key, int):
+            raise ProtectedDictIntError(ProtectedDictIntError.NOT_INTEGER_KEY,
+                                        'Not integer key!')
+        if key in self.__dict:
+            raise ProtectedDictIntError(ProtectedDictIntError.CHANGE_VALUE,
+                                        'Change existing value!')
+        self.__dict[key] = value
+
+    def __getitem__(self, item):
+        if item not in self.__dict:
+            raise ProtectedDictIntError(ProtectedDictIntError.MISSED_KEY, 'Missed key!')
+        return self.__dict[item]
+
+    def __add__(self, other):
+        result = ProtectedDictInt()
+        for key, value in self.__dict.items():
+            result[key] = value
+
+        if isinstance(other, ProtectedDictInt):
+            for key, value in other.__dict.items():
+                result[key] = value
+
+        elif isinstance(other, tuple) and len(other) == 2:
+            result[other[0]] = other[1]
+        else:
+            raise ValueError
+        return result
+
+    def __sub__(self, other):
+        if not isinstance(other, int):
+            raise TypeError
+        if other not in self.__dict:
+            raise KeyError
+        new_dict = ProtectedDictInt()
+        for key, value in self.__dict.items():
+            if key != other:
+                new_dict.__dict[key] = value
+        return new_dict
+
+    def __delitem__(self, key):
+        if not isinstance(key, int):
+            raise ProtectedDictIntError(ProtectedDictIntError.NOT_INTEGER_KEY, 'Not integer key!')
+        if key not in self.__dict:
+            raise ProtectedDictIntError(ProtectedDictIntError.MISSED_KEY, 'Missed key!')
+        del self.__dict[key]
+
+    def __len__(self):
+        return len(self.__dict)
+
+    def __contains__(self, item):
+        return item in self.__dict
+
+    def __call__(self):
+        return sum(self.__dict.keys())
+
+    def __str__(self):
+        return str(self.__dict)
+
+
+if __name__ == '__main__':
+    d = ProtectedDictInt()
+    d[0] = 2
+    d[1] = 10
+    d[2] = 11
+    for i in d:
+        print(i)
+
+        print("=====================")
+        for i in d:
+            print(i)
+        print("=====================")
